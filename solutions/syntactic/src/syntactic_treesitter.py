@@ -100,6 +100,7 @@ def main():
 
     # log.debug("Found method %s %s", method_name, node.range)
 
+
     body = node.child_by_field_name("body")
     assert body and body.text
     for t in body.text.splitlines():
@@ -119,8 +120,28 @@ def main():
         log.debug("No assertion")
         print("assertion error;not-found")
 
+    division_q = tree_sitter.Query(
+        JAVA_LANGUAGE,
+        f"""
+        (binary_expression
+            operator: "/") @division
+    """,
+    )
+    
+    divide_found = any(
+        capture_name == "division"
+        for capture_name, _ in tree_sitter.QueryCursor(division_q).captures(body).items()
+    )
+
+    if divide_found:
+        log.debug("Found division")
+        print("division by zero;found")
+    else:
+        log.debug("No division")
+        print("division by zero;not-found")
+
     for q in jpamb.QUERIES:
-        if q != "assertion error":
+        if q != "assertion error" and q != "division by zero":
             print(f"{q};skip")
 
     sys.exit(0)
